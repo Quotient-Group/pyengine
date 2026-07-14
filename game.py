@@ -5,7 +5,8 @@ import numpy as np
 import time
 
 from state import *
-from tween import *
+from tween.tween import *
+from tween.easing_funcs import *
 from tilemap.tilemap import TilemapManager
 from entity.player import Player
 from utils import *
@@ -25,7 +26,7 @@ class Game(StateObject, TweenObject):
         self.tilemap_manager = TilemapManager()
         self.tilemap_manager.load("testmap")
 
-        self.set_state(self.intro)
+        self.set_state(self.main_menu)
 
         self.player = Player()
 
@@ -53,14 +54,15 @@ class Game(StateObject, TweenObject):
     @state
     def main_menu(self):
         goku = pygame.image.load("goku.png").convert()
-        pos = np.array([0.0,0.0])
-        self.interpolate(value=pos, start=pos.copy(), end=pos.copy()+np.array([500,400]), duration=1.0)
+        pos = np.array([100.0,0.0])
+        self.move_by(value=pos, shift=np.array([300.0,400.0]), duration=1.0, easing_func=ease_in_out_quad)
+        self.move_by(value=pos, shift=np.array([100.0,0.0]), duration=1.0, easing_func=ease_in_out_quad)
         def update(dt):
             ...
         def draw():
             self.window.fill((0,0,0))
             self.window.blit(goku, pos)
-    
+
         return update, draw
 
 

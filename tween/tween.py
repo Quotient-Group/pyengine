@@ -23,26 +23,27 @@ to use at high level, but controversial in their implementation and construction
 import pygame
 import numpy as np
 from functools import wraps
-from utils import accepts_kwarg
+from types import FunctionType as function
+from project.utils import accepts_kwarg
 
 
 def tween(func):
     @wraps(func)
-    def wrapper(*args, duration: float = 1.0, elapsing_func: function = lambda t: t, on_end: function = lambda: None, **kwargs):
+    def wrapper(*args, duration: float = 1.0, easing_func: function = lambda t: t, on_end: function = lambda: None, **kwargs):
         if args:
             if isinstance(args[0], TweenObject):
                 self = args[0]
                 
-                # If you need to access duration, elapsing_func, on_end within the tween, you can
+                # If you need to access duration, easing_func, on_end within the tween, you can
                 if accepts_kwarg(func, "duration"):
                     kwargs["duration"] = duration
-                if accepts_kwarg(func, "elapsing_func"):
-                    kwargs["elapsing_func"] = elapsing_func
+                if accepts_kwarg(func, "easing_func"):
+                    kwargs["easing_func"] = easing_func
                 if accepts_kwarg(func, "on_end"):
                     kwargs["on_end"] = on_end
 
                 def tween():
-                    return func(*args, **kwargs), duration, elapsing_func, on_end
+                    return func(*args, **kwargs), duration, easing_func, on_end
                 tween._is_tween = True
                 self.tween_manager.add_sequential(tween)
     wrapper._is_tween = True
@@ -65,7 +66,7 @@ class TweenManager:
             {
                 "update": tween_data[0],
                 "duration": tween_data[1],
-                "elapsing_func": tween_data[2],
+                "easing_func": tween_data[2],
                 "on_end": tween_data[3],
                 "time": 0.0
             }
@@ -101,7 +102,7 @@ class TweenManager:
                 tween["on_end"]()
                 stream.remove(tween)
                 continue
-            tween["update"](tween["elapsing_func"](tween["time"]/tween["duration"]))
+            tween["update"](tween["easing_func"](tween["time"]/tween["duration"]))
             tween["time"] += dt
 
 
@@ -115,11 +116,31 @@ class TweenObject:
         return lambda t: None
 
     @tween
-    def interpolate(self, value: np.ndarray, start: np.ndarray, end: np.ndarray):
+    def interpolate(self, value: np.ndarray, start: np.ndarray | function, end: np.ndarray | function):
+        just_began = True
+        fixed_start = None
+        fixed_end = None
         def update(t):
-            nonlocal value
-            value += (start-value) + t*(end-start)
+            nonlocal value, start, end, just_began, fixed_start, fixed_end
+            # At the beginning, make sure that start and end are up to date (they could depend on time)
+            if just_began:
+                if callable(start):
+                    start = start()
+                if callable(end):
+                    end = end()
+                just_began = False
+                fixed_start = start.copy()
+                fixed_end = end.copy()
+            value += (fixed_start-value) + t*(fixed_end-fixed_start)
         return update
+
+
+    def move_to(self, value: np.ndarray, dest: np.ndarray, duration=1.0, easing_func=lambda t: t, on_end=lambda: None):
+        self.interpolate(value=value, start=value, end=dest, duration=duration, easing_func=easing_func, on_end=on_end)
+
+
+    def move_by(self, value: np.ndarray, shift: np.ndarray, duration=1.0, easing_func=lambda t: t, on_end=lambda: None):
+        self.move_to(value=value, dest=lambda: value+shift, duration=duration, easing_func=easing_func, on_end=on_end)
 
     @tween
     def fade_in(self, surface: pygame.Surface):
