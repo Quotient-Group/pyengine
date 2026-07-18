@@ -139,8 +139,8 @@ class TweenObject:
         self.interpolate(value=value, start=value, end=dest, duration=duration, easing_func=easing_func, on_end=on_end)
 
 
-    def move_by(self, value: np.ndarray, shift: np.ndarray, duration=1.0, easing_func=lambda t: t, on_end=lambda: None):
-        self.move_to(value=value, dest=lambda: value+shift, duration=duration, easing_func=easing_func, on_end=on_end)
+    def move(self, value: np.ndarray, by: np.ndarray, duration=1.0, easing_func=lambda t: t, on_end=lambda: None):
+        self.move_to(value=value, dest=lambda: value+by, duration=duration, easing_func=easing_func, on_end=on_end)
 
     @tween
     def fade_in(self, surface: pygame.Surface):

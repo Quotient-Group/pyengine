@@ -53,18 +53,36 @@ class Game(StateObject, TweenObject):
 
     @state
     def main_menu(self):
-        goku = pygame.image.load("goku.png").convert()
-        pos = np.array([100.0,0.0])
-        self.move_by(value=pos, shift=np.array([300.0,400.0]), duration=1.0, easing_func=ease_in_out_quad)
-        self.move_by(value=pos, shift=np.array([100.0,0.0]), duration=1.0, easing_func=ease_in_out_quad)
+        goku = pygame.image.load("goku.png").convert_alpha()
+        pos = np.array(pygame.mouse.get_pos(), dtype="float64")
+        # self.move(value=pos, by=np.array([100.0,100.0]), duration=1.0, easing_func=ease_in_out_quad)
+        # self.move(value=pos, by=np.array([100.0,0.0]), duration=1.0, easing_func=ease_in_out_quad)
         def update(dt):
-            ...
+            nonlocal pos
+            speed = 10
+            mpos = np.array(pygame.mouse.get_pos())
+            pos += speed*(mpos-pos)*dt
         def draw():
-            self.window.fill((0,0,0))
-            self.window.blit(goku, pos)
+            self.window.fill((0,255,0))
+            self.window.blit(goku, (int(pos[0]), int(pos[1])))
 
         return update, draw
 
+    @state
+    def new_game(self):
+        ...
+    
+    @state
+    def load_game(self):
+        ...
+    
+    @state
+    def options(self):
+        ...
+    
+    @state
+    def exit(self):
+        ...
 
     @state
     def test(self):
