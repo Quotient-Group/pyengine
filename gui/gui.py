@@ -26,7 +26,8 @@ class GUIManager:
 
 
     def set_current_container(self, container: Container):
-        self.current_container = container
+        if container:
+            self.current_container = container
 
 
     def get_current_container(self):
@@ -39,15 +40,15 @@ class GUIManager:
 
 
     def add_container(self, uv_rect: tuple[float,float,float,float], color: pygame.Color = None):
-        container = Container(parent=self.current_container, uv_rect=np.array(uv_rect))
-        if color:
-            container.set_color(color)
-        self.current_container.add_child(child=container)
-        self.set_current_container(container)
+        self.current_container.add_child(cls=Container, uv_rect=uv_rect)
+        self.set_current_container(self.current_container.children[-1])
+        self.get_current_container().set_color(color)
 
 
-    def add_element(self, element: GUIElement):
-        self.current_container.add_child(child=element)
+    def add_element(self, cls, *args, **kwargs):
+        if not issubclass(cls, GUIElement):
+            raise ValueError(f"Trying to add a GUIElement but got somthing else!")
+        self.current_container.add_child(cls, *args, **kwargs)
 
 
     def update(self, dt):

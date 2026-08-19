@@ -35,7 +35,7 @@ class Game(StateObject, TweenObject):
 
         self.player = Player()
 
-        self.set_state(self.intro)
+        self.set_state(self.main_menu)
 
     @state
     def intro(self):
@@ -62,19 +62,19 @@ class Game(StateObject, TweenObject):
         pygame.mixer.music.play(-1, fade_ms=5000)
         pygame.mixer.music.set_volume(0.5)
 
-        goku = pygame.image.load("goku.png")
         self.gui_manager.add_container((0.1,0.2,0.4,0.4), color=(255,0,0,255))
+        self.gui_manager.add_element(cls=Button, uv_rect=(0.5,0.5,0.3,0.2))
+
+        button: Button = self.gui_manager.get_current_container().children[-1]
 
         self.fade_in(self.window, duration=3.0)
-        self.gui_manager.get_current_container().wait(duration=3.0)
-        self.gui_manager.get_current_container().scale_by(factor=1.1, duration=1.0, easing_func=ease_out_elastic)
 
         def update(dt):
             self.gui_manager.update(dt)
+            button.set_active(pygame.Rect(button.get_rect(self.window)).collidepoint(self.mpos))
         def draw():
             self.window.fill((0,255,0))
             self.gui_manager.draw(self.window)
-            self.window.blit(goku, self.mpos)
 
         return update, draw
 

@@ -163,6 +163,7 @@ class TweenManager:
                 continue
             tween = stream[0]
             if tween["time"] >= tween["duration"]:
+                tween["time"] = tween["duration"]
                 tween["on_end"]()
                 stream.remove(tween)
                 continue
@@ -193,8 +194,8 @@ class TweenObject:
                 if callable(end):
                     end = end()
                 just_began = False
-                fixed_start = start.copy()
-                fixed_end = end.copy()
+                fixed_start = np.array(start).copy()
+                fixed_end = np.array(end).copy()
             value += (fixed_start-value) + t*(fixed_end-fixed_start)
         return update
 

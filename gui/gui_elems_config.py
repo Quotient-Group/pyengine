@@ -10,6 +10,7 @@ import numpy as np
 
 from project.state import *
 from project.tween.tween import *
+from project.tween.easing_funcs import *
 
 
 class GUIElement(StateObject, TweenObject):
@@ -20,8 +21,11 @@ class GUIElement(StateObject, TweenObject):
     def __init__(self, parent: GUIElement | None = None, uv_rect: np.ndarray = np.array([0.0,0.0,0.0,0.0])):
         super().__init__()
 
+        self.default_uv_rect = np.array(uv_rect)
+        self.current_uv_pivot_point = (0.5,0.5)
+
         self.parent: GUIElement = parent
-        self.uv_rect: np.ndarray = uv_rect
+        self.uv_rect: np.ndarray = np.array(uv_rect)
 
 
     def shapeshift_to(self, target: tuple[float,float,float,float], duration=1.0, easing_func=lambda t: t, on_end=lambda: None):
@@ -29,23 +33,38 @@ class GUIElement(StateObject, TweenObject):
         self.move_to(value=self.uv_rect, dest=np.array(target), duration=duration, easing_func=easing_func, on_end=on_end)
 
 
-    def scale_by(self, factor: float = 1.0, uv_pivot_point: tuple[float,float] = (0.5,0.5), duration=1.0, easing_func=lambda t: t, on_end=lambda: None):
-        '''Scale the GUIElement by some factor, around a pivot point whose uv represent its position _inside_ the uv_rect (for instance
-        the point (0.5,0.5) is the center, while (0.0,0.0) is the origin. (1.0,1.0) is the bottom left etc)'''
+    def rescale_to(self, target_size: tuple[float,float] = None, uv_pivot_point: tuple[float,float] = None, duration=1.0, easing_func=lambda t: t, on_end=lambda: None):
+        '''Rescales the GUIElement to a certain target size around a pivot point whose uv represent its position _inside_ the uv_rect
+        (for instance the point (0.5,0.5) is the center, while (0.0,0.0) is the origin. (1.0,1.0) is the bottom left etc)'''
+
+        if not uv_pivot_point:
+            uv_pivot_point = self.current_uv_pivot_point
+        else:
+            self.current_uv_pivot_point = uv_pivot_point
 
         # Let's compute the final rectangle, and then shapeshift ouselves to it. Start by the current uv_rect
         target = self.uv_rect
 
         # calculate the uv coords of the pivot point in the outer reference frame (the one of the parent)
-        outer_uv_pivot_point_coords = self.uv_rect[:2]+np.array(uv_pivot_point)*self.uv_rect[2:]
+        outer_uv_pivot_point = self.uv_rect[:2]+np.array(uv_pivot_point)*self.uv_rect[2:]
 
         # calculate the final position of the uv_rect
-        final_uv_pos = target[:2]-outer_uv_pivot_point_coords
-        final_uv_pos = factor*final_uv_pos + outer_uv_pivot_point_coords
+        final_uv_pos = -np.array(target_size)*np.array(uv_pivot_point) + outer_uv_pivot_point
 
         # calculate the target and shapeshift to it
-        target = np.concatenate((final_uv_pos, factor*self.uv_rect[2:]))
+        target = np.concatenate((final_uv_pos, np.array(target_size)))
         self.shapeshift_to(target=target, duration=duration, easing_func=easing_func, on_end=on_end)
+
+
+    def scale_by(self, factor: float = 1.0, uv_pivot_point: tuple[float,float] = None, duration=1.0, easing_func=lambda t: t, on_end=lambda: None):
+        '''Scale the GUIElement by some factor, around a pivot point whose uv represent its position _inside_ the uv_rect (for instance
+        the point (0.5,0.5) is the center, while (0.0,0.0) is the origin. (1.0,1.0) is the bottom left etc)'''
+
+        self.rescale_to(target_size=factor*np.array(self.uv_rect[2:]), uv_pivot_point=uv_pivot_point, duration=duration, easing_func=easing_func, on_end=on_end)
+
+
+    def scale_to_default(self, uv_pivot_point: tuple[float,float] = None, duration=1.0, easing_func=lambda t: t, on_end=lambda: None):
+        self.rescale_to(target_size=self.default_uv_rect[2:], uv_pivot_point=uv_pivot_point, duration=duration, easing_func=easing_func, on_end=on_end)
 
 
     def get_parent(self):
@@ -65,6 +84,10 @@ class GUIElement(StateObject, TweenObject):
         size = parent_size*uv_size
 
         return np.array((*pos, *size,))
+
+
+    def get_rect(self, parent_surface: pygame.Surface):
+        return self.get_root_uv_rect()*np.array(2*(*parent_surface.get_size(),))
 
 
 class Container(GUIElement):
@@ -87,16 +110,16 @@ class Container(GUIElement):
                 child.update(dt)
         def draw(surface: pygame.Surface):
             if not isinstance(self, Root):
-                rect = self.get_root_uv_rect()*np.array(2*(*surface.get_size(),))
-                pygame.draw.rect(surface=surface, color=self.color, rect=rect)
+                pygame.draw.rect(surface=surface, color=self.color, rect=self.get_rect(parent_surface=surface))
             for child in self.children:
                 child.draw(surface)
 
         return update, draw
 
 
-    def add_child(self, child: GUIElement):
-        self.children.append(child)
+    def add_child(self, cls, *args, **kwargs):
+        kwargs["parent"] = self
+        self.children.append(cls(*args, **kwargs))
 
 
     def set_color(self, color: pygame.Color = None):
@@ -110,3 +133,41 @@ class Root(Container):
     '''
     def __init__(self):
         super().__init__(parent=None, uv_rect=np.array([0.0,0.0,1.0,1.0]))
+
+
+class Button(GUIElement):
+    def __init__(self, parent = None, uv_rect = np.array([0, 0, 0, 0])):
+        super().__init__(parent, uv_rect)
+
+        self.color: pygame.Color = pygame.Color(0,0,255,255)
+        self.is_active = False
+
+        self.set_state(self.inactive)
+
+    @state
+    def active(self):
+        def update(dt):
+            if not self.is_active:
+                self.new_tween_stream()
+                self.scale_to_default(duration=0.05, easing_func=ease_out_quad)
+                self.set_state(self.inactive)
+        def draw(surface: pygame.Surface):
+            pygame.draw.rect(surface=surface, color=self.color, rect=self.get_rect(parent_surface=surface))
+
+        return update, draw
+
+    @state
+    def inactive(self):
+        def update(dt):
+            if self.is_active:
+                self.new_tween_stream()
+                self.scale_by(factor=1.1, duration=0.05, easing_func=ease_out_quad)
+                self.set_state(self.active)
+        def draw(surface: pygame.Surface):
+            pygame.draw.rect(surface=surface, color=self.color, rect=self.get_rect(parent_surface=surface))
+
+        return update, draw
+
+
+    def set_active(self, state=False):
+        self.is_active = state
