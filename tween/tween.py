@@ -1,30 +1,93 @@
-'''
-A tween is a special method of an object. Each tween needs to be preceded by the @tween decorator, 
-and needs to define an update() function, and return it.
+"""
+Tween System Overview
+=====================
 
-An example of a tween would be:
+A **tween** is a special method of an object.
+Each tween must be decorated with ``@tween`` and define an ``update()`` function,
+which it returns.
 
-class Game:
-    def __init__(self):
-        pass
-    
-    @tween
-    def interpolate(self, value, start, end):
-        def update(t):
-            nonlocal value
-            value = start + t(end-start)
-        return update
+Example
+-------
 
+A minimal tween inside a game class::
 
-The entirety of tweens structure is a bit complex: there is a lot of syntactic sugar that makes them easier
-to use at high level, but controversial in their implementation and construction.
-'''
+    class Game:
+        def __init__(self):
+            pass
+
+        @tween
+        def interpolate(self, value, start, end):
+            def update(t):
+                nonlocal value
+                value = start + t*(end-start)
+            return update
+
+Tween Manager and Streams (Low‑Level)
+-------------------------------------
+
+The tween system is built around a **manager** that controls execution. The
+implementation involves some syntactic sugar to simplify high‑level usage,
+but the underlying structure is intentionally flexible.
+
+- Use ``add_sequential(tween)`` to append a tween to the *currently active*
+  sequential stream.
+- Use ``add_parallel(tween)`` to start a new parallel stream that runs
+  alongside existing ones.
+
+When you add a sequential tween, it joins the last stream that was started
+(either sequentially or in parallel). This creates a predictable chain.
+
+Example::
+
+    tween_manager = TweenManager()
+    tween_manager.add_sequential(tween1)   # starts first stream
+    tween_manager.add_parallel(tween2)     # starts second stream, runs in parallel
+    tween_manager.add_sequential(tween3)   # appended to the second stream
+
+Resulting structure:
+
+    First stream:   [tween1]
+    Second stream:  [tween2, tween3]
+
+Both streams execute concurrently, and within each stream tweens run
+sequentially in the order they were added.
+
+High‑Level Interface: TweenObject
+---------------------------------
+
+In practice, directly interacting with the ``TweenManager`` is rarely necessary.
+The project provides a ``TweenObject`` class that internally manages its own
+tween streams, simplifying everyday usage. This object is designed to cover
+the vast majority of use cases you will encounter.
+
+It comes with several pre‑defined, commonly used tweens. For example, the
+``interpolate()`` method linearly interpolates a value (which can be a scalar,
+list, or NumPy array) from a start to an end over a specified duration.
+
+Example::
+
+    import numpy as np
+
+    tween_object = TweenObject()
+    vector = np.array([0.0, 0.0])
+
+    tween_object.interpolate(
+        value=vector,
+        start=[0.0, 0.0],
+        end=[100.0, 0.0],
+        duration=1.0
+    )
+
+Calling this method automatically schedules and runs the tween on the
+``TweenObject``'s internal manager, abstracting away stream handling so you
+can focus on the animation logic itself.
+"""
 
 import pygame
 import numpy as np
 from functools import wraps
 from types import FunctionType as function
-from project.utils import accepts_kwarg
+from utils import accepts_kwarg
 
 
 def tween(func):
@@ -34,7 +97,7 @@ def tween(func):
             if isinstance(args[0], TweenObject):
                 self = args[0]
                 
-                # If you need to access duration, easing_func, on_end within the tween, you can
+                # If you need to access duration, easing_func or on_end WITHIN the tween, you can
                 if accepts_kwarg(func, "duration"):
                     kwargs["duration"] = duration
                 if accepts_kwarg(func, "easing_func"):
@@ -42,6 +105,7 @@ def tween(func):
                 if accepts_kwarg(func, "on_end"):
                     kwargs["on_end"] = on_end
 
+                # The actual tween function that will be sent to the tween manager
                 def tween():
                     return func(*args, **kwargs), duration, easing_func, on_end
                 tween._is_tween = True
@@ -144,6 +208,7 @@ class TweenObject:
 
     @tween
     def fade_in(self, surface: pygame.Surface):
+        surface.set_alpha(0)
         def update(t):
             surface.set_alpha(int(255*t))
 

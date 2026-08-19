@@ -32,6 +32,8 @@ class Player:
 
 '''
 
+import pygame
+
 from functools import wraps
 
 
@@ -69,12 +71,15 @@ class StateManager():
         if update:
             update(dt)
     
-    def draw(self):
+    def draw(self, surface: pygame.Surface = None):
         if not self.state:
             raise ValueError(f"State not initialized!")
         draw = self.functions["draw"]
         if draw:
-            draw()
+            if surface:
+                draw(surface)
+            else:
+                draw()
 
 
 class StateObject:
@@ -93,6 +98,9 @@ class StateObject:
         super().update(dt)
 
 
-    def draw(self):
-        self.state_manager.draw()
+    def draw(self, surface: pygame.Surface = None):
+        if surface:
+            self.state_manager.draw(surface)
+        else:
+            self.state_manager.draw()
 
