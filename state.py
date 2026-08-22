@@ -70,7 +70,7 @@ class StateManager():
         update = self.functions["update"]
         if update:
             update(dt)
-    
+
     def draw(self, surface: pygame.Surface = None):
         if not self.state:
             raise ValueError(f"State not initialized!")

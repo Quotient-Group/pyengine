@@ -120,7 +120,7 @@ class TweenManager:
 
 
     def add_sequential(self, tween: function):
-        # Return error if the function passed isn't a state (i.e doesn't have the @state decorator)
+        # Return error if the function passed isn't a tween (i.e doesn't have the @tween decorator)
         if not getattr(tween, '_is_tween', False):
             raise TypeError(f"{tween.__name__} is not a tween")
         tween_data = tween()
@@ -131,7 +131,7 @@ class TweenManager:
                 "update": tween_data[0],
                 "duration": tween_data[1],
                 "easing_func": tween_data[2],
-                "on_end": tween_data[3],
+                "on_end": [tween_data[3]],
                 "time": 0.0
             }
         )
@@ -143,7 +143,7 @@ class TweenManager:
 
     def add_parallel(self, tween: function):
         self.new_tween_stream()
-        self.add_sequential(tween)
+        self.add_sequential(tween=tween)
     
 
     def do(self, func: function):
@@ -153,7 +153,7 @@ class TweenManager:
         if not self.tween_streams[-1]:
             func()
             return
-        self.tween_streams[-1][-1]["on_end"] = func
+        self.tween_streams[-1][-1]["on_end"].append(func)
 
 
     def update(self, dt):
@@ -164,7 +164,8 @@ class TweenManager:
             tween = stream[0]
             if tween["time"] >= tween["duration"]:
                 tween["time"] = tween["duration"]
-                tween["on_end"]()
+                for end_func in tween["on_end"]:
+                    end_func()
                 stream.remove(tween)
                 continue
             tween["update"](tween["easing_func"](tween["time"]/tween["duration"]))

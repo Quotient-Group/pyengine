@@ -11,7 +11,7 @@ info = pygame.display.Info()
 SCREEN_WIDTH, SCREEN_HEIGHT = info.current_w, info.current_h
 SCREEN_RES = SCREEN_WIDTH, SCREEN_HEIGHT
 
-WIDTH, HEIGHT = get_nearest_res(target=(640,480), res=SCREEN_RES)
+WIDTH, HEIGHT = get_nearest_res(target=(1920,1080), res=SCREEN_RES)
 RESOLUTION = (WIDTH, HEIGHT)
 
 display = pygame.display.set_mode(RESOLUTION, pygame.SCALED | pygame.FULLSCREEN)

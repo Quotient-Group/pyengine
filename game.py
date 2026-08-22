@@ -19,9 +19,10 @@ class Game(StateObject, TweenObject):
 
         self.display: pygame.Surface = display
         self.screen_res = screen_res
-        self.gui_manager = GUIManager()
+        self.gui_manager = GUIManager(game=self)
 
         self.mpos = np.array(pygame.mouse.get_pos())
+        self.click = pygame.mouse.get_just_pressed()
 
         self.window = pygame.Surface(screen_res)
         self.window_pos = np.array([0,0])
@@ -35,7 +36,7 @@ class Game(StateObject, TweenObject):
 
         self.player = Player()
 
-        self.set_state(self.main_menu)
+        self.set_state(self.intro)
 
     @state
     def intro(self):
@@ -43,8 +44,9 @@ class Game(StateObject, TweenObject):
 
         image = pygame.image.load("title.png").convert()
         image.set_alpha(0)
+        image = pygame.transform.smoothscale(surface=image, size=self.window.get_size())
         self.wait(duration=0.5)
-        self.fade_in_out(image, duration_in=1.0, duration=2.0, duration_out=1.0)
+        self.fade_in_out(surface=image, duration_in=1.0, duration=2.0, duration_out=1.0)
         self.do(lambda: self.set_state(self.main_menu))
         def update(dt):
             ...
@@ -56,24 +58,30 @@ class Game(StateObject, TweenObject):
 
     @state
     def main_menu(self):
-        self.set_display(res=(640,480))
-        
+        self.set_display(res=(1920,1080))
+
         pygame.mixer.music.load("music.ogg")
         pygame.mixer.music.play(-1, fade_ms=5000)
         pygame.mixer.music.set_volume(0.5)
 
-        self.gui_manager.add_container((0.1,0.2,0.4,0.4), color=(255,0,0,255))
-        self.gui_manager.add_element(cls=Button, uv_rect=(0.5,0.5,0.3,0.2))
+        background = pygame.image.load(file="background_3.png").convert()
+        background = pygame.transform.smoothscale(surface=background, size=self.window.get_size())
 
-        button: Button = self.gui_manager.get_current_container().children[-1]
+        table_tex = pygame.image.load("table.png").convert_alpha()
+        play_tex = pygame.image.load("play.png").convert_alpha()
+        exit_tex = pygame.image.load("exit.png").convert_alpha()
+
+        self.gui_manager.add_element(cls=Container, uv_rect=(0.3225,0.1,0.355,0.8), texture=table_tex)
+        self.gui_manager.add_element(cls=Button, uv_rect=(0.22,0.35,0.56,0.116), texture=play_tex, at_click=lambda: self.set_state(self.test))
+        self.gui_manager.add_element(cls=Button, uv_rect=(0.22,0.5,0.56,0.116), texture=exit_tex, at_click=lambda: self.set_state(self.exit))
 
         self.fade_in(self.window, duration=3.0)
 
         def update(dt):
             self.gui_manager.update(dt)
-            button.set_active(pygame.Rect(button.get_rect(self.window)).collidepoint(self.mpos))
         def draw():
-            self.window.fill((0,255,0))
+            # self.window.fill((0,0,0))
+            self.window.blit(background)
             self.gui_manager.draw(self.window)
 
         return update, draw
@@ -89,14 +97,19 @@ class Game(StateObject, TweenObject):
     @state
     def options(self):
         ...
-    
+
     @state
     def exit(self):
-        pygame.quit()
-        sys.exit()
+        self.new_tween_stream()
+        self.wait(duration=0.25)
+        self.do(lambda: pygame.quit())
+        self.do(lambda: sys.exit())
+
+        return lambda dt: None, lambda: None
 
     @state
     def test(self):
+        self.set_display(res=(640,360))
         def update(dt):
             target_pos = self.player.pos - np.array(self.display.get_size())/2
             self.camera_offset += (target_pos-self.camera_offset)*1.5*dt
@@ -116,7 +129,7 @@ class Game(StateObject, TweenObject):
 
 
     def set_display(self, res=(1920,1080), flags=pygame.SCALED | pygame.FULLSCREEN):
-        self.display = pygame.display.set_mode(get_nearest_res(target=res, res=self.screen_res), flags)
+        self.display = pygame.display.set_mode(get_nearest_res(target=res, res=self.screen_res), flags=flags if flags else 0)
         self.window = pygame.Surface(self.display.get_size())
 
 
@@ -125,6 +138,7 @@ class Game(StateObject, TweenObject):
         self.prev_time = time.time()
 
         self.mpos = np.array(pygame.mouse.get_pos())
+        self.click = pygame.mouse.get_just_pressed()
 
         super().update(dt)
 

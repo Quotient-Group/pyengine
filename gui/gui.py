@@ -6,6 +6,13 @@ to build a GUI from code, through the GUIManager. You can add new containers or 
 in the apposit file.
 '''
 
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from project.game import Game
+
 import pygame
 from project.gui.gui_elems_config import *
 
@@ -14,8 +21,8 @@ class GUIManager:
     '''
     The main class used to build GUIs across the project. It holds a Root instance from which it operates along the tree structures
     '''
-    def __init__(self):
-        self.root = Root()
+    def __init__(self, game: Game):
+        self.root: Root = Root(game=game)
         self.current_container: Container = None
 
         self.set_current_container(self.root)
@@ -39,16 +46,18 @@ class GUIManager:
         self.set_current_container(parent)
 
 
-    def add_container(self, uv_rect: tuple[float,float,float,float], color: pygame.Color = None):
-        self.current_container.add_child(cls=Container, uv_rect=uv_rect)
-        self.set_current_container(self.current_container.children[-1])
-        self.get_current_container().set_color(color)
+    # def add_container(self, uv_rect: tuple[float,float,float,float], color: pygame.Color = None):
+    #     self.current_container.add_child(cls=Container, uv_rect=uv_rect)
+    #     self.set_current_container(self.current_container.children[-1])
+    #     self.get_current_container().set_color(color)
 
 
     def add_element(self, cls, *args, **kwargs):
         if not issubclass(cls, GUIElement):
             raise ValueError(f"Trying to add a GUIElement but got somthing else!")
         self.current_container.add_child(cls, *args, **kwargs)
+        if cls == Container:
+            self.set_current_container(self.current_container.children[-1])
 
 
     def update(self, dt):

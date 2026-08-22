@@ -5,8 +5,15 @@ There is a GUIElement class which holds a parent GUIElement instance (which is N
 Look at the rest of the documentation for better overview of specific elements
 '''
 
+from __future__ import annotations
+
 import pygame
 import numpy as np
+
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from project.game import Game
 
 from project.state import *
 from project.tween.tween import *
@@ -20,6 +27,9 @@ class GUIElement(StateObject, TweenObject):
     '''
     def __init__(self, parent: GUIElement | None = None, uv_rect: np.ndarray = np.array([0.0,0.0,0.0,0.0])):
         super().__init__()
+        self.game: Game = None
+        if parent:
+            self.game = parent.game
 
         self.default_uv_rect = np.array(uv_rect)
         self.current_uv_pivot_point = (0.5,0.5)
@@ -94,12 +104,13 @@ class Container(GUIElement):
     '''
     A Container is a GUIElement with a list of children, to be updated and drawn during its sole default state (may be updated in future)
     '''
-    def __init__(self, parent = None, uv_rect = np.array([0.0,0.0,1.0,1.0])):
+    def __init__(self, parent = None, uv_rect = np.array([0.0,0.0,1.0,1.0]), texture: pygame.Surface = None):
         super().__init__(parent, uv_rect)
 
         self.children: list = []
 
         self.color: pygame.Color = pygame.Color(0,0,0,0)
+        self.texture = texture
         
         self.set_state(self.default)
 
@@ -110,7 +121,11 @@ class Container(GUIElement):
                 child.update(dt)
         def draw(surface: pygame.Surface):
             if not isinstance(self, Root):
-                pygame.draw.rect(surface=surface, color=self.color, rect=self.get_rect(parent_surface=surface))
+                if not self.texture:
+                    pygame.draw.rect(surface=surface, color=self.color, rect=self.get_rect(parent_surface=surface))
+                else:
+                    final_tex = pygame.transform.scale(surface=self.texture, size=self.get_rect(parent_surface=surface)[2:])
+                    surface.blit(final_tex, dest=self.get_rect(parent_surface=surface))
             for child in self.children:
                 child.draw(surface)
 
@@ -131,16 +146,24 @@ class Root(Container):
     '''
     A Root is a special Container with None as parent and fixed uv_rect (0.0,0.0,1.0,1.0). 
     '''
-    def __init__(self):
+    def __init__(self, game: Game = None):
         super().__init__(parent=None, uv_rect=np.array([0.0,0.0,1.0,1.0]))
+        self.game: Game = game
 
 
 class Button(GUIElement):
-    def __init__(self, parent = None, uv_rect = np.array([0, 0, 0, 0])):
+    def __init__(self, parent = None, uv_rect = np.array([0, 0, 0, 0]), texture: pygame.Surface = None, at_click: function = lambda: None):
         super().__init__(parent, uv_rect)
 
         self.color: pygame.Color = pygame.Color(0,0,255,255)
         self.is_active = False
+
+        self.texture: pygame.Surface = texture
+
+        self.tick_sound = pygame.mixer.Sound("tick_0.mp3")
+        self.select_sound = pygame.mixer.Sound("select_0.mp3")
+
+        self.at_click: function = at_click
 
         self.set_state(self.inactive)
 
@@ -151,8 +174,37 @@ class Button(GUIElement):
                 self.new_tween_stream()
                 self.scale_to_default(duration=0.05, easing_func=ease_out_quad)
                 self.set_state(self.inactive)
+            if self.game.click[0]:
+                self.set_state(self.clicked)
         def draw(surface: pygame.Surface):
-            pygame.draw.rect(surface=surface, color=self.color, rect=self.get_rect(parent_surface=surface))
+            self.set_active(pygame.Rect(self.get_rect(surface)).collidepoint(self.game.mpos))
+
+            if not self.texture:
+                final_tex = pygame.Surface(size=self.get_rect(parent_surface=surface)[2:])
+                final_tex.fill(color=self.color)
+            else:
+                final_tex = pygame.transform.scale(surface=self.texture, size=self.get_rect(parent_surface=surface)[2:])
+            surface.blit(final_tex, dest=self.get_rect(parent_surface=surface))
+
+        return update, draw
+
+    @state
+    def clicked(self):
+        self.select_sound.play()
+        self.at_click()
+        self.new_tween_stream()
+        self.scale_to_default(duration=0.05, easing_func=ease_out_quad)
+        self.do(lambda: self.set_state(self.active))
+        self.do(lambda: self.scale_by(factor=1.1, duration=0.05, easing_func=ease_out_quad))
+        def update(dt):
+            ...
+        def draw(surface: pygame.Surface):
+            if not self.texture:
+                final_tex = pygame.Surface(size=self.get_rect(parent_surface=surface)[2:])
+                final_tex.fill(color=self.color)
+            else:
+                final_tex = pygame.transform.scale(surface=self.texture, size=self.get_rect(parent_surface=surface)[2:])
+            surface.blit(final_tex, dest=self.get_rect(parent_surface=surface))
 
         return update, draw
 
@@ -160,11 +212,19 @@ class Button(GUIElement):
     def inactive(self):
         def update(dt):
             if self.is_active:
+                self.tick_sound.play()
                 self.new_tween_stream()
                 self.scale_by(factor=1.1, duration=0.05, easing_func=ease_out_quad)
                 self.set_state(self.active)
         def draw(surface: pygame.Surface):
-            pygame.draw.rect(surface=surface, color=self.color, rect=self.get_rect(parent_surface=surface))
+            self.set_active(pygame.Rect(self.get_rect(surface)).collidepoint(self.game.mpos))
+
+            if not self.texture:
+                final_tex = pygame.Surface(size=self.get_rect(parent_surface=surface)[2:])
+                final_tex.fill(color=self.color)
+            else:
+                final_tex = pygame.transform.scale(surface=self.texture, size=self.get_rect(parent_surface=surface)[2:])
+            surface.blit(final_tex, dest=self.get_rect(parent_surface=surface))
 
         return update, draw
 
