@@ -1,7 +1,7 @@
 
 import pygame
 import sys
-from utils import *
+from .utils import *
 
 pygame.init()
 pygame.mixer.init()
@@ -23,7 +23,7 @@ if len(sys.argv) > 1:
         map_editor = MapEditor(RESOLUTION)
         map_editor.run(display=display)
 
-from game import Game
+from .game import Game
 
 # pygame.mouse.set_visible(False)
 

@@ -87,7 +87,7 @@ import pygame
 import numpy as np
 from functools import wraps
 from types import FunctionType as function
-from utils import accepts_kwarg
+from ..utils import accepts_kwarg
 
 
 def tween(func):

@@ -2,7 +2,7 @@
 import pygame
 import numpy as np
 
-from animation.animation import AnimationManager
+from ..animation.animation import AnimationManager
 
 
 class Player:

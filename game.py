@@ -4,13 +4,13 @@ import sys
 import numpy as np
 import time
 
-from state import *
-from tween.tween import *
-from tween.easing_funcs import *
-from gui.gui import *
-from tilemap.tilemap import TilemapManager
-from entity.player import Player
-from utils import *
+from .state import *
+from .tween.tween import *
+from .tween.easing_funcs import *
+from .gui.gui import *
+from .tilemap.tilemap import TilemapManager
+from .entity.player import Player
+from .utils import *
 
 
 class Game(StateObject, TweenObject):
@@ -36,13 +36,13 @@ class Game(StateObject, TweenObject):
 
         self.player = Player()
 
-        self.set_state(self.intro)
+        self.set_state(self.main_menu)
 
     @state
     def intro(self):
         self.set_display(res=(1920,1080))
 
-        image = pygame.image.load("title.png").convert()
+        image = pygame.image.load("project/title.png").convert()
         image.set_alpha(0)
         image = pygame.transform.smoothscale(surface=image, size=self.window.get_size())
         self.wait(duration=0.5)
@@ -60,18 +60,18 @@ class Game(StateObject, TweenObject):
     def main_menu(self):
         self.set_display(res=(1920,1080))
 
-        pygame.mixer.music.load("music.ogg")
+        pygame.mixer.music.load("project/music.ogg")
         pygame.mixer.music.play(-1, fade_ms=5000)
         pygame.mixer.music.set_volume(0.5)
 
-        background = pygame.image.load(file="background_3.png").convert()
+        background = pygame.image.load("project/background_3.png").convert()
         background = pygame.transform.smoothscale(surface=background, size=self.window.get_size())
 
-        table_tex = pygame.image.load("table.png").convert_alpha()
-        play_tex = pygame.image.load("play.png").convert_alpha()
-        exit_tex = pygame.image.load("exit.png").convert_alpha()
+        table_tex = pygame.image.load("project/table.png").convert_alpha()
+        play_tex = pygame.image.load("project/play.png").convert_alpha()
+        exit_tex = pygame.image.load("project/exit.png").convert_alpha()
 
-        self.gui_manager.add_element(cls=Container, uv_rect=(0.3225,0.1,0.355,0.8), texture=table_tex)
+        self.gui_manager.add_element(cls=Container, uv_rect=(0.3225,0.05,0.355,0.9), texture=table_tex)
         self.gui_manager.add_element(cls=Button, uv_rect=(0.22,0.35,0.56,0.116), texture=play_tex, at_click=lambda: self.set_state(self.test))
         self.gui_manager.add_element(cls=Button, uv_rect=(0.22,0.5,0.56,0.116), texture=exit_tex, at_click=lambda: self.set_state(self.exit))
 
@@ -93,7 +93,7 @@ class Game(StateObject, TweenObject):
     @state
     def load_game(self):
         ...
-    
+
     @state
     def options(self):
         ...

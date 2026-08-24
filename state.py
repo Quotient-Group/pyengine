@@ -35,6 +35,7 @@ class Player:
 import pygame
 
 from functools import wraps
+from types import FunctionType as function
 
 
 def state(func):

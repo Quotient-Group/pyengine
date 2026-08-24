@@ -13,11 +13,11 @@ import numpy as np
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from project.game import Game
+    from ..game import Game
 
-from project.state import *
-from project.tween.tween import *
-from project.tween.easing_funcs import *
+from ..state import *
+from ..tween.tween import *
+from ..tween.easing_funcs import *
 
 
 class GUIElement(StateObject, TweenObject):
@@ -160,8 +160,8 @@ class Button(GUIElement):
 
         self.texture: pygame.Surface = texture
 
-        self.tick_sound = pygame.mixer.Sound("tick_0.mp3")
-        self.select_sound = pygame.mixer.Sound("select_0.mp3")
+        self.tick_sound = pygame.mixer.Sound("project/tick_0.mp3")
+        self.select_sound = pygame.mixer.Sound("project/select_0.mp3")
 
         self.at_click: function = at_click
 
