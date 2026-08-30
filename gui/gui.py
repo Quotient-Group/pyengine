@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..game import Game
+    from game import Game
 
 import pygame
 from .gui_elems_config import *
@@ -28,8 +28,9 @@ class GUIManager:
         self.set_current_container(self.root)
 
 
-    def reset(self):
-        self.root = Root()
+    def clear(self):
+        self.root.clear()
+        self.set_current_container(self.root)
 
 
     def set_current_container(self, container: Container):
@@ -44,12 +45,6 @@ class GUIManager:
     def back(self):
         parent = self.current_container.get_parent()
         self.set_current_container(parent)
-
-
-    # def add_container(self, uv_rect: tuple[float,float,float,float], color: pygame.Color = None):
-    #     self.current_container.add_child(cls=Container, uv_rect=uv_rect)
-    #     self.set_current_container(self.current_container.children[-1])
-    #     self.get_current_container().set_color(color)
 
 
     def add_element(self, cls, *args, **kwargs):

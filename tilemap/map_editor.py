@@ -8,7 +8,7 @@ from filedialpy import openFile, saveFile
 
 from tilemap.tilemap import TilemapManager
 from tilemap.tile_config import *
-from project.utils import AlphaSurface
+from utils import AlphaSurface
 
 
 MODULE_DIR = Path(__file__).parent

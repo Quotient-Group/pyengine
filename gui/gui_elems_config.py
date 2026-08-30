@@ -15,9 +15,9 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from ..game import Game
 
-from ..state import *
-from ..tween.tween import *
-from ..tween.easing_funcs import *
+from state import *
+from tween import *
+from easing_funcs import *
 
 
 class GUIElement(StateObject, TweenObject):
@@ -137,6 +137,12 @@ class Container(GUIElement):
         self.children.append(cls(*args, **kwargs))
 
 
+    def clear(self):
+        for child in self.children:
+            del child
+        self.children.clear()
+
+
     def set_color(self, color: pygame.Color = None):
         if color:
             self.color = color
@@ -160,8 +166,8 @@ class Button(GUIElement):
 
         self.texture: pygame.Surface = texture
 
-        self.tick_sound = pygame.mixer.Sound("project/tick_0.mp3")
-        self.select_sound = pygame.mixer.Sound("project/select_0.mp3")
+        self.tick_sound = pygame.mixer.Sound("assets/sounds/tick_0.mp3")
+        self.select_sound = pygame.mixer.Sound("assets/sounds/select_0.mp3")
 
         self.at_click: function = at_click
 

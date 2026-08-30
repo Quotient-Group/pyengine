@@ -4,13 +4,13 @@ import sys
 import numpy as np
 import time
 
-from .state import *
-from .tween.tween import *
-from .tween.easing_funcs import *
-from .gui.gui import *
-from .tilemap.tilemap import TilemapManager
-from .entity.player import Player
-from .utils import *
+from state import *
+from tween import *
+from easing_funcs import *
+from gui.gui import *
+from tilemap.tilemap import TilemapManager
+from entity.player import Player
+from utils import *
 
 
 class Game(StateObject, TweenObject):
@@ -32,17 +32,17 @@ class Game(StateObject, TweenObject):
         self.camera_offset: np.ndarray = np.array([0.0,0.0])
 
         self.tilemap_manager = TilemapManager()
-        self.tilemap_manager.load("testmap")
+        self.tilemap_manager.load("assets/tilemaps/testmap")
 
         self.player = Player()
 
-        self.set_state(self.main_menu)
+        self.set_state(self.intro)
 
     @state
     def intro(self):
         self.set_display(res=(1920,1080))
 
-        image = pygame.image.load("project/title.png").convert()
+        image = pygame.image.load("assets/misc/title.png").convert()
         image.set_alpha(0)
         image = pygame.transform.smoothscale(surface=image, size=self.window.get_size())
         self.wait(duration=0.5)
@@ -59,17 +59,18 @@ class Game(StateObject, TweenObject):
     @state
     def main_menu(self):
         self.set_display(res=(1920,1080))
+        self.gui_manager.clear()
 
-        pygame.mixer.music.load("project/music.ogg")
+        pygame.mixer.music.load("assets/music/music.ogg")
         pygame.mixer.music.play(-1, fade_ms=5000)
         pygame.mixer.music.set_volume(0.5)
 
-        background = pygame.image.load("project/background_3.png").convert()
+        background = pygame.image.load("assets/misc/background_3.png").convert()
         background = pygame.transform.smoothscale(surface=background, size=self.window.get_size())
 
-        table_tex = pygame.image.load("project/table.png").convert_alpha()
-        play_tex = pygame.image.load("project/play.png").convert_alpha()
-        exit_tex = pygame.image.load("project/exit.png").convert_alpha()
+        table_tex = pygame.image.load("assets/misc/table.png").convert_alpha()
+        play_tex = pygame.image.load("assets/misc/play.png").convert_alpha()
+        exit_tex = pygame.image.load("assets/misc/exit.png").convert_alpha()
 
         self.gui_manager.add_element(cls=Container, uv_rect=(0.3225,0.05,0.355,0.9), texture=table_tex)
         self.gui_manager.add_element(cls=Button, uv_rect=(0.22,0.35,0.56,0.116), texture=play_tex, at_click=lambda: self.set_state(self.test))

@@ -15,13 +15,8 @@ In the tile_config.py file you can see how tiles are configured.
 import pygame
 import numpy as np
 import pickle
-from pathlib import Path
 
 from .tile_config import get_tile_texture
-
-
-MODULE_DIR = Path(__file__).parent
-TILEMAPS_DIR = MODULE_DIR / "tilemaps"
 
 
 class TilemapManager:
@@ -41,12 +36,12 @@ class TilemapManager:
 
 
     def save(self, filename: str):
-        with open(str(Path(TILEMAPS_DIR / filename)), "wb") as f:
+        with open(filename, "wb") as f:
             pickle.dump((self.tilemap, self.unlocked_tilemap), f)
 
 
     def load(self, filename: str):
-       with open(str(Path(TILEMAPS_DIR / filename)), "rb") as f:
+       with open(filename, "rb") as f:
            self.tilemap, self.unlocked_tilemap = pickle.load(f)
 
 
