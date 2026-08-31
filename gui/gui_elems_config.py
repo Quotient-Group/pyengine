@@ -13,11 +13,12 @@ import numpy as np
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..game import Game
+    from game import Game
 
 from state import *
 from tween import *
 from easing_funcs import *
+from utils import *
 
 
 class GUIElement(StateObject, TweenObject):
@@ -109,7 +110,7 @@ class Container(GUIElement):
 
         self.children: list = []
 
-        self.color: pygame.Color = pygame.Color(0,0,0,0)
+        self.color = SALMON
         self.texture = texture
         
         self.set_state(self.default)
@@ -166,8 +167,8 @@ class Button(GUIElement):
 
         self.texture: pygame.Surface = texture
 
-        self.tick_sound = pygame.mixer.Sound("assets/sounds/tick_0.mp3")
-        self.select_sound = pygame.mixer.Sound("assets/sounds/select_0.mp3")
+        self.tick_sound = pygame.mixer.Sound("assets/sounds/tick_0.ogg")
+        self.select_sound = pygame.mixer.Sound("assets/sounds/select_0.ogg")
 
         self.at_click: function = at_click
 
@@ -180,7 +181,7 @@ class Button(GUIElement):
                 self.new_tween_stream()
                 self.scale_to_default(duration=0.05, easing_func=ease_out_quad)
                 self.set_state(self.inactive)
-            if self.game.click[0]:
+            if self.game.click:
                 self.set_state(self.clicked)
         def draw(surface: pygame.Surface):
             self.set_active(pygame.Rect(self.get_rect(surface)).collidepoint(self.game.mpos))

@@ -16,7 +16,7 @@ import pygame
 import numpy as np
 import pickle
 
-from .tile_config import get_tile_texture
+from tilemap.tile_config import get_tile_texture
 
 
 class TilemapManager:

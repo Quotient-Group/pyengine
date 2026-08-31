@@ -14,7 +14,7 @@ if TYPE_CHECKING:
     from game import Game
 
 import pygame
-from .gui_elems_config import *
+from gui.gui_elems_config import *
 
 
 class GUIManager:

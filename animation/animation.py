@@ -15,7 +15,7 @@ In the anim_config.py file you can see how animations are configured
 
 import pygame
 
-from .anim_config import get_animation
+from animation.anim_config import get_animation
 
 
 class AnimationManager:

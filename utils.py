@@ -3,6 +3,45 @@ import pygame
 import inspect
 import math
 
+'''Useful variables'''
+BLACK = (0,0,0)
+WHITE = (255,255,255)
+RED = (255,0,0)
+GREEN = (0,255,0)
+BLUE = (0,0,255)
+YELLOW = (255, 255, 0)
+CYAN = (0, 255, 255)
+MAGENTA = (255, 0, 255)
+GRAY = (128, 128, 128)
+DARK_GRAY = (64, 64, 64)
+LIGHT_GRAY = (192, 192, 192)
+ORANGE = (255, 165, 0)
+PURPLE = (128, 0, 128)
+PINK = (255, 192, 203)
+BROWN = (165, 42, 42)
+OLIVE = (128, 128, 0)
+TEAL = (0, 128, 128)
+NAVY = (0, 0, 128)
+MAROON = (128, 0, 0)
+GOLD = (255, 215, 0)
+CORAL = (255, 127, 80)
+INDIGO = (75, 0, 130)
+VIOLET = (238, 130, 238)
+HOT_PINK = (255, 105, 180)
+CRIMSON = (220, 20, 60)
+CHOCOLATE = (210, 105, 30)
+TURQUOISE = (64, 224, 208)
+LAVENDER = (230, 230, 250)
+PLUM = (221, 160, 221)
+KHAKI = (240, 230, 140)
+SALMON = (250, 128, 114)
+TOMATO = (255, 99, 71)
+ORANGE_RED = (255, 69, 0)
+DARK_GOLDENROD = (184, 134, 11)
+LIME_GREEN = (50, 205, 50)
+FOREST_GREEN = (34, 139, 34)
+SKY_BLUE = (135, 206, 235)
+
 
 '''
 Useful functions
