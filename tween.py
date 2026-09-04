@@ -201,11 +201,11 @@ class TweenObject:
         return update
 
 
-    def move_to(self, value: np.ndarray, dest: np.ndarray, duration=1.0, easing_func=lambda t: t, on_end=lambda: None):
+    def change_to(self, value: np.ndarray, dest: np.ndarray, duration=1.0, easing_func=lambda t: t, on_end=lambda: None):
         self.interpolate(value=value, start=value, end=dest, duration=duration, easing_func=easing_func, on_end=on_end)
 
 
-    def move(self, value: np.ndarray, by: np.ndarray, duration=1.0, easing_func=lambda t: t, on_end=lambda: None):
+    def change(self, value: np.ndarray, by: np.ndarray, duration=1.0, easing_func=lambda t: t, on_end=lambda: None):
         self.move_to(value=value, dest=lambda: value+by, duration=duration, easing_func=easing_func, on_end=on_end)
 
     @tween

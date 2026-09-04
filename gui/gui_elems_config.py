@@ -17,7 +17,6 @@ if TYPE_CHECKING:
 
 from state import *
 from tween import *
-from easing_funcs import *
 from utils import *
 
 
@@ -41,7 +40,7 @@ class GUIElement(StateObject, TweenObject):
 
     def shapeshift_to(self, target: tuple[float,float,float,float], duration=1.0, easing_func=lambda t: t, on_end=lambda: None):
         '''Interpolates the element's uv_rect to the specified target'''
-        self.move_to(value=self.uv_rect, dest=np.array(target), duration=duration, easing_func=easing_func, on_end=on_end)
+        self.change_to(value=self.uv_rect, dest=np.array(target), duration=duration, easing_func=easing_func, on_end=on_end)
 
 
     def rescale_to(self, target_size: tuple[float,float] = None, uv_pivot_point: tuple[float,float] = None, duration=1.0, easing_func=lambda t: t, on_end=lambda: None):
@@ -110,7 +109,7 @@ class Container(GUIElement):
 
         self.children: list = []
 
-        self.color = SALMON
+        self.color = GREEN
         self.texture = texture
         
         self.set_state(self.default)

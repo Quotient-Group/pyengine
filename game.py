@@ -7,7 +7,6 @@ import numpy as np
 
 from state import *
 from tween import *
-from easing_funcs import *
 from gui.gui import *
 from tilemap.tilemap import TilemapManager
 from entity.player import Player
@@ -38,6 +37,7 @@ class Game(StateObject, TweenObject):
 
         self.player = Player()
 
+        self.toggle_fullscreen()
         self.set_state(self.intro)
 
     @state
@@ -58,6 +58,7 @@ class Game(StateObject, TweenObject):
 
     @state
     def main_menu(self):
+        self.new_tween_stream()
         self.gui_manager.clear()
 
         pygame.mixer.music.load("assets/music/music.ogg")
@@ -91,7 +92,7 @@ class Game(StateObject, TweenObject):
     @state
     def new_game(self):
         ...
-    
+
     @state
     def load_game(self):
         ...
@@ -148,12 +149,11 @@ class Game(StateObject, TweenObject):
 
 
     def toggle_fullscreen(self):
+        if sys.platform == "emscripten":
+            return
         self.fullscreen = not self.fullscreen
         if self.fullscreen:
-            if sys.platform == "emscripten":
-                self.display = pygame.display.set_mode(self.screen_res, pygame.FULLSCREEN)
-            else:
-                self.display = pygame.display.set_mode(self.screen_res, pygame.SCALED | pygame.FULLSCREEN)
+            self.display = pygame.display.set_mode(self.screen_res, pygame.SCALED | pygame.FULLSCREEN)
         else:
             self.display = pygame.display.set_mode(self.screen_res)
 

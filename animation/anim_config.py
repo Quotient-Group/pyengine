@@ -19,7 +19,6 @@ ANIMATIONS = {
     }
 }
 
-
 def get_animation(id: str, variant: str):
     for frame in ANIMATIONS[id][variant]:
         frame.set_colorkey(BLACK)
